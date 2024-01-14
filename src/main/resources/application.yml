@@ -20,6 +20,25 @@ spring:
     console:
       enabled: true # Enabled for access h2 console for Dev
       path: /h2-console
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    org.springframework.web: INFO
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+    
+management:
+  endpoints:
+    web:
+      base-path: /api/actuator
+    exposure:
+      include: "health" #configprops,logfile,metrics,loggers,caches,httptrace,prometheus
+  tracing:
+   sampling:
+     probability: 1.0
+   propagation:
+     type: b3
+     
 app:
   maintenance-periods:
       - startTime: "09:00"

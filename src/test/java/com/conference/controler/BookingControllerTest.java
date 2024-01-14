@@ -13,7 +13,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,10 +52,10 @@ public class BookingControllerTest {
 	@Test
     void bookConferenceRoom_ValidBooking_ReturnsBookedRoom() throws Exception {
         BookingData newBooking = createValidBooking();
-        lenient().when(bookingService.bookConferenceRoom(Matchers.any())).thenReturn(newBooking);
+        lenient().when(bookingService.bookConferenceRoom(any())).thenReturn(newBooking);
         mockMvc.perform(post("/bookings/bookConferenceRoom")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{ \"roomId\": 1, \"startTime\": \"17:00:00\", \"endTime\": \"18:00:00\", \"participants\": 2 }"))
+                .content("{ \"roomId\": 1, \"startTime\": \"17:00:00\", \"endTime\": \"1:00:00\", \"participants\": 2 }"))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.participants").value(2));
