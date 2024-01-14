@@ -3,8 +3,6 @@ package com.conference.controler;
 import java.time.LocalTime;
 import java.util.List;
 
-import javax.validation.constraints.NotNull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +18,7 @@ import com.conference.entity.ConferenceRoom;
 import com.conference.service.ConferenceRoomService;
 
 
-@RestController
+@RestController	
 @RequestMapping("/conference-rooms")
 @Validated
 public class ConferenceRoomController {
@@ -42,11 +40,9 @@ public class ConferenceRoomController {
     }
     
     @GetMapping("/available")
-    public List<ConferenceRoom> getAvailableRooms(
-           @RequestParam("startTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) 
-           @NotNull(message = "Start time cannot be null") LocalTime startTime,
-            @RequestParam("endTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) 
-           @NotNull(message = "End time cannot be null") LocalTime endTime) {
-        return roomService.getAvailableRooms(startTime, endTime);
-    }
+	public List<ConferenceRoom> getAvailableRooms(
+			@RequestParam("startTime") @DateTimeFormat(pattern = "HH:mm") LocalTime startTime,
+            @RequestParam("endTime") @DateTimeFormat(pattern = "HH:mm") LocalTime endTime) {
+		return roomService.getAvailableRooms(startTime, endTime);
+	}
 }
