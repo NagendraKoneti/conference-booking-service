@@ -1,8 +1,8 @@
 package com.conference.controler;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.conference.entity.BookingData;
 import com.conference.exception.RoomBookingException;
@@ -52,21 +53,23 @@ public class BookingControllerTest {
 	@Test
     void bookConferenceRoom_ValidBooking_ReturnsBookedRoom() throws Exception {
         BookingData newBooking = createValidBooking();
-        lenient().when(bookingService.bookConferenceRoom(any())).thenReturn(newBooking);
-        mockMvc.perform(post("/bookings/bookConferenceRoom")
+        lenient().when(bookingService.bookConferenceRoom(any(),anyString())).thenReturn(newBooking);
+        mockMvc.perform(MockMvcRequestBuilders.post("/bookings/bookConferenceRoom")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{ \"roomId\": 1, \"startTime\": \"17:00:00\", \"endTime\": \"1:00:00\", \"participants\": 2 }"))
+                .content("{ \"roomId\": 1, \"startTime\": \"17:00:00\", \"endTime\": \"1:00:00\", \"participants\": 2 }")
+        		.header("LoggedInUser", "nagendra"))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.participants").value(2));
     }
-
+	
     @Test
     void bookConferenceRoom_InvalidRoom_ThrowsException() throws Exception {
-    	lenient(). when(bookingService.bookConferenceRoom(any())).thenThrow(new RoomBookingException("Invalid room or exceeding room capacity."));
-        mockMvc.perform(post("/bookings/bookConferenceRoom")
+    	lenient(). when(bookingService.bookConferenceRoom(any(),anyString())).thenThrow(new RoomBookingException("Invalid room or exceeding room capacity."));
+        mockMvc.perform(MockMvcRequestBuilders.post("/bookings/bookConferenceRoom")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{ \"roomId\": 1, \"startTime\": \"14:00:00\"	, \"endTime\": \"15:00:00\", \"participants\": 5 }"))
+                .content("{ \"roomId\": 1, \"startTime\": \"14:00:00\"	, \"endTime\": \"15:00:00\", \"participants\": 5 }")
+                .header("LoggedInUser", "nagendra"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Validation failed"))
                 .andExpect(jsonPath("$.message").value("Invalid room or exceeding room capacity."));
@@ -74,9 +77,10 @@ public class BookingControllerTest {
 
     @Test
     void bookConferenceRoom_InvalidRequestBody_ThrowsException() throws Exception {
-        mockMvc.perform(post("/bookings/bookConferenceRoom")
+        mockMvc.perform(MockMvcRequestBuilders.post("/bookings/bookConferenceRoom")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{ \"roomId\": 1, \"participants\": 5 }"))
+                .content("{ \"roomId\": 1, \"participants\": 5 }")
+                .header("LoggedInUser", "nagendra"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Execution failed"));
                 /*.andExpect(jsonPath("$.message").value("Start time cannot be null"));*/

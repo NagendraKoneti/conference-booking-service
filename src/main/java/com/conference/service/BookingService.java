@@ -13,6 +13,7 @@ import com.conference.dto.BookingDetails;
 import com.conference.entity.BookingData;
 import com.conference.exception.RoomBookingException;
 import com.conference.repo.BookingRepository;
+import com.conference.util.ConferenceConstants;
 
 /**
  * @author Nagendra
@@ -20,8 +21,7 @@ import com.conference.repo.BookingRepository;
 @Service
 public class BookingService {
 	
-
-    @Autowired
+	@Autowired
     private BookingRepository bookingRepository;
     
     @Autowired	
@@ -39,31 +39,28 @@ public class BookingService {
      *   e) Check if booking is for the current date
      *   
      * @param bookingDetails
+     * @param loggedInUser 
      * @return booking information
      */
-    public BookingData bookConferenceRoom(BookingDetails bookingDetails) {
+    public BookingData bookConferenceRoom(BookingDetails bookingDetails, String loggedInUser) {
     	validateBookingForCurrentDate(bookingDetails.getStartTime());
         validateBookingInterval(bookingDetails); 
         validateRoomCapacity(bookingDetails);  
         checkMaintenanceSchedule(bookingDetails); 
         checkAvailability(bookingDetails);
-        return bookingRepository.save(mapToEntity(bookingDetails));
+        return bookingRepository.save(mapToEntity(bookingDetails,loggedInUser));
     }
 
-    private BookingData mapToEntity(BookingDetails bookingDetails) {
+    private BookingData mapToEntity(BookingDetails bookingDetails, String loggedInUser) {
 	  BookingData bookingData = new BookingData();
 	  bookingData.setStartTime(bookingDetails.getStartTime());
 	  bookingData.setEndTime(bookingDetails.getEndTime());
-	  bookingData.setOrganizer("Nagendra");
-	  bookingData.setStatus("Booked");
+	  bookingData.setOrganizer(loggedInUser);
+	  bookingData.setStatus(ConferenceConstants.BOOKED);
 	  bookingData.setParticipants(bookingDetails.getParticipants());
 	  return bookingData;		
 	}
 
-	public Optional<BookingData> getBookingsForRoom(Long roomId) {
-        return bookingRepository.findById(roomId);
-    }
-    
 	/**
 	 * 
 	 * @param roomId
@@ -85,7 +82,7 @@ public class BookingService {
      */
     private void checkMaintenanceSchedule(BookingDetails bookingDetails) {
         if (maintenanceService.isMaintenanceScheduled(bookingDetails.getStartTime(), bookingDetails.getEndTime())) {
-            throw new RoomBookingException("The room is under maintenance during the requested time slot.");
+            throw new RoomBookingException(ConferenceConstants.UNDER_MAINTENANCE);
         }
     }
     
@@ -97,11 +94,11 @@ public class BookingService {
 	private void validateRoomCapacity(BookingDetails bookingDetails) {
 		int participants = bookingDetails.getParticipants();
 		Optional.of(participants).filter(p -> p > 1)
-				.orElseThrow(() -> new RoomBookingException("Number of participants must be greater than 1."));
+				.orElseThrow(() -> new RoomBookingException(ConferenceConstants.LESS_PARTICIPANTS));
 
 		Optional.ofNullable(conferenceRoomService.getRoomById(bookingDetails.getRoomId()))
 				.filter(room -> participants <= room.getMaxCapacity())
-				.orElseThrow(() -> new RoomBookingException("Invalid room or exceeding room capacity."));
+				.orElseThrow(() -> new RoomBookingException(ConferenceConstants.EXCEEDING_CAPACITY));
 
 	}
     
@@ -113,7 +110,7 @@ public class BookingService {
     	Optional.ofNullable(startTime)
         .ifPresent(currentLocalTime -> {
             if (!currentLocalTime.isAfter(LocalTime.now())) {
-                throw new RoomBookingException("Booking can only be done for the current date and future time slots.");
+                throw new RoomBookingException(ConferenceConstants.BOOKING_FOR_FUTURE_SLOTS);
             }
         });
     }
@@ -131,7 +128,7 @@ public class BookingService {
                 .findByIdAndEndTimeAfterAndStartTimeBefore(roomId, bookingDetails.getStartTime(), bookingDetails.getEndTime());
 
         if (!overlappingBookings.isEmpty()) {
-            throw new RoomBookingException("The room is already booked for the requested time slot.");
+            throw new RoomBookingException(ConferenceConstants.ROOM_ALREADY_BOOKED);
         }
     }
     
@@ -142,7 +139,7 @@ public class BookingService {
 	 */
     private void validateBookingInterval(BookingDetails bookingDetails) {
         if (!isValidTimeInterval(bookingDetails.getStartTime(), bookingDetails.getEndTime())) {
-            throw new RoomBookingException("Booking intervals must be in increments of 15 minutes.");
+            throw new RoomBookingException(ConferenceConstants.INCORRECT_BOOKING_INTERVALS);
         }
     }
 
@@ -159,7 +156,7 @@ public class BookingService {
     }
 
     private boolean isTimeIn15MinuteIncrements(LocalTime startTime) {
-        return startTime.getMinute() % 15 == 0;
+        return startTime.getMinute() % ConferenceConstants.MINITS_15 == ConferenceConstants.ZERO;
     }
     
 }

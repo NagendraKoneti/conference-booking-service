@@ -1,17 +1,13 @@
 package com.conference.service;
 
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,10 +20,11 @@ import com.conference.entity.BookingData;
 import com.conference.entity.ConferenceRoom;
 import com.conference.exception.RoomBookingException;
 import com.conference.repo.BookingRepository;
-import com.conference.util.MaintenancePeriodConfig;
 
 @ExtendWith(MockitoExtension.class)
 class BookingServiceTest {
+
+	private static final String LOGGED_IN_USER = "loggedInUser";
 
 	@Mock
     private BookingRepository bookingRepository;
@@ -47,7 +44,7 @@ class BookingServiceTest {
         when(conferenceRoomService.getRoomById(anyLong())).thenReturn(createValidRoom());
         when(maintenanceService.isMaintenanceScheduled(any(), any())).thenReturn(false);
         when(bookingRepository.save(any())).thenReturn(createBookingData());
-        BookingData bookedRoom = bookingService.bookConferenceRoom(newBooking);
+        BookingData bookedRoom = bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER);
         assertNotNull(bookedRoom);
         assertEquals(newBooking.getRoomId(), bookedRoom.getId());
     }
@@ -56,7 +53,7 @@ class BookingServiceTest {
     void bookRoom_InvalidRoom_ThrowsException() {
     	BookingDetails newBooking = createValidBooking();
         when(conferenceRoomService.getRoomById(anyLong())).thenReturn(null);
-        assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking));
+        assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER));
     }
 
    @Test
@@ -65,16 +62,9 @@ class BookingServiceTest {
         when(conferenceRoomService.getRoomById(anyLong())).thenReturn(createValidRoom());
         when(maintenanceService.isMaintenanceScheduled(any(), any())).thenReturn(true);
 
-        assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking));
+        assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER));
     }
 
-    @Test
-    void getBookingsForRoom_ValidRoom_ReturnsBookings() {
-        Long roomId = 1L;
-       when(bookingRepository.findById(roomId)).thenReturn(Optional.of(createBookingData()));
-        Optional<BookingData> bookings = bookingService.getBookingsForRoom(roomId);
-        assertFalse(bookings.isEmpty());
-    }
 
     private BookingData createBookingData() {
     	BookingData bookingData = new BookingData();
@@ -94,15 +84,6 @@ class BookingServiceTest {
         return bookingData;
     }
     
-    private List<MaintenancePeriodConfig> getMaintenancePeriods() {
-    	List<MaintenancePeriodConfig> maintenancePeriods = new ArrayList<>();
-    	MaintenancePeriodConfig maintenancePeriod = new MaintenancePeriodConfig();
-    	maintenancePeriod.setStartTime(LocalTime.of(10,00));
-    	maintenancePeriod.setEndTime(LocalTime.of(11,00));
-    	maintenancePeriods.add(maintenancePeriod);
-		return maintenancePeriods;
-	}
-
     private ConferenceRoom createValidRoom() {
         ConferenceRoom room = new ConferenceRoom();
         room.setId(1L);
