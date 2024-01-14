@@ -1,0 +1,30 @@
+server:
+  port: 8080
+  servlet:
+    application-display-name: conference-booking-service
+    
+    
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+    hikari:
+      connectionTimeout: 30000
+      minimumIdle: 5
+      maximumPoolSize: 10
+      idleTimeout: 30000
+      poolName: conferenceHikariCP
+  h2: 
+    console:
+      enabled: true # Enabled for access h2 console for Dev
+      path: /h2-console
+app:
+  maintenance-periods:
+      - startTime: "09:00"
+        endTime: "09:15"
+      - startTime: "13:00"
+        endTime: "13:15"
+      - startTime: "17:00"
+        endTime: "17:15"
