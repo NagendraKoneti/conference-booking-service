@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.conference.entity.BookingData;
 
 public interface BookingRepository extends JpaRepository<BookingData, Long> {
-    List<BookingData> findByIdAndEndTimeAfterAndStartTimeBefore(Long roomId, LocalTime start, LocalTime end);
+    List<BookingData> findByConferenceRoom_ConferenceRoomIdAndEndTimeAfterAndStartTimeBefore(Long roomId, LocalTime start, LocalTime end);
 }
 

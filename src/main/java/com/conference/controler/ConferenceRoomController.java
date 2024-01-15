@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.conference.dto.ConferenceDetails;
-import com.conference.entity.ConferenceRoomData;
 import com.conference.service.ConferenceRoomService;
 import com.conference.util.ConferenceConstants;
 

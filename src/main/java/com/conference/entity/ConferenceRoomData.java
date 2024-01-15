@@ -27,7 +27,9 @@ public class ConferenceRoomData {
 	private String name;
 	@Column(name = "max_capacity")
 	private int maxCapacity;
+	@Column(name = "creation_date")
 	private LocalDateTime creationDate;
+	@Column(name = "update_date")
 	private LocalDateTime updateDate;
 
 	@PrePersist

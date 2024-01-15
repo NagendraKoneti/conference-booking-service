@@ -41,6 +41,7 @@ public class ConferenceRoomService {
      */
 	public List<ConferenceDetails> getAvailableRooms(LocalTime startTime, LocalTime endTime) {
 		logger.info("Started finding getAvailableRooms slots : {} - {} ",startTime,endTime);
+		validateBookingForCurrentDate(startTime);
 		checkMaintenanceSchedule(startTime,endTime);
 		List<ConferenceRoomData> allRooms = conferenceRoomRepo.findAll();
 		logger.info(" Total no of rooms :{} ",allRooms.size());
@@ -52,6 +53,15 @@ public class ConferenceRoomService {
 		return dataMapper.mapConferenceRoomDetails(allRooms);
 	}
 	
+	/**
+	 * This method will check whether the start time is feature time or past time.  
+	 * 
+	 * @param startTime
+	 */
+	private void validateBookingForCurrentDate(LocalTime startTime) {
+		bookingService.validateBookingForCurrentDate(startTime);
+	}
+
 	/**
 	 * This method will find conference 
 	 * @param roomId

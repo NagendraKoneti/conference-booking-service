@@ -67,7 +67,7 @@ public class BookingService {
 	 */
     public boolean isRoomBooked(Long roomId, LocalTime startTime, LocalTime endTime) {
         List<BookingData> overlappingBookings = bookingRepository
-                .findByIdAndEndTimeAfterAndStartTimeBefore(roomId, startTime, endTime);
+                .findByConferenceRoom_ConferenceRoomIdAndEndTimeAfterAndStartTimeBefore(roomId, startTime, endTime);
         return !overlappingBookings.isEmpty();
     }
     
@@ -98,7 +98,7 @@ public class BookingService {
      * 
      * @param localTime
      */
-    private void validateBookingForCurrentDate(LocalTime startTime) {
+    public void validateBookingForCurrentDate(LocalTime startTime) {
     	Optional.ofNullable(startTime)
         .ifPresent(currentLocalTime -> {
             if (!currentLocalTime.isAfter(LocalTime.now())) {
@@ -117,7 +117,7 @@ public class BookingService {
      */
     private ConferenceRoomData getAvailabileConferenceRoom(BookingDetails bookingDetails) {
     	
-    	List<ConferenceRoomData> allRooms = conferenceRoomRepo.findByMaxCapacityGreaterThanEqualOrderByMaxCapacityDesc(bookingDetails.getParticipants());
+    	List<ConferenceRoomData> allRooms = conferenceRoomRepo.findByMaxCapacityGreaterThanEqualOrderByMaxCapacityAsc(bookingDetails.getParticipants());
     	for (ConferenceRoomData conferenceRoomData : allRooms) {
     		 if(!isRoomBooked(conferenceRoomData.getConferenceRoomId(), bookingDetails.getStartTime(), bookingDetails.getEndTime()))
     			 return conferenceRoomData;

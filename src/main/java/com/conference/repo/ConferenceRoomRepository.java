@@ -8,6 +8,6 @@ import com.conference.entity.ConferenceRoomData;
 
 public interface ConferenceRoomRepository extends JpaRepository<ConferenceRoomData, Long> {
 
-	List<ConferenceRoomData> findByMaxCapacityGreaterThanEqualOrderByMaxCapacityDesc(int participants);
+	List<ConferenceRoomData> findByMaxCapacityGreaterThanEqualOrderByMaxCapacityAsc(int participants);
 
 }
