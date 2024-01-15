@@ -15,11 +15,12 @@ Build Process:
 ---------------
 build : clean install
 
-docker build -t conference-booking-service
+docker build -t conference-room-booking-app .
 
+DB:
 DB: http://localhost:8080/h2-console
 
 Swagger URL:
 --------------
-swagger url : http://localhost:8080/swagger-ui/index.html
+http://localhost:8080/swagger-ui/index.html
 

@@ -17,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.conference.dto.BookingDetails;
 import com.conference.entity.BookingData;
-import com.conference.entity.ConferenceRoom;
+import com.conference.entity.ConferenceRoomData;
 import com.conference.exception.RoomBookingException;
 import com.conference.repo.BookingRepository;
 
@@ -84,9 +84,9 @@ class BookingServiceTest {
         return bookingData;
     }
     
-    private ConferenceRoom createValidRoom() {
-        ConferenceRoom room = new ConferenceRoom();
-        room.setId(1L);
+    private ConferenceRoomData createValidRoom() {
+        ConferenceRoomData room = new ConferenceRoomData();
+        room.setConferenceRoomId(1L);
         room.setMaxCapacity(10);
         return room;
     }

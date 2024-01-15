@@ -9,8 +9,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.conference.entity.ConferenceRoom;
+import com.conference.dto.ConferenceDetails;
+import com.conference.entity.ConferenceRoomData;
+import com.conference.exception.RoomBookingException;
+import com.conference.mapper.DataMapper;
 import com.conference.repo.ConferenceRoomRepository;
+import com.conference.util.ConferenceConstants;
 
 @Service
 public class ConferenceRoomService {
@@ -18,9 +22,13 @@ public class ConferenceRoomService {
 	private static final Logger logger = LoggerFactory.getLogger(ConferenceRoomService.class);
 	
     @Autowired
-    private ConferenceRoomRepository roomRepository;
+    private ConferenceRoomRepository conferenceRoomRepo;
     @Autowired
     private BookingService bookingService;
+    @Autowired
+    private DataMapper dataMapper;
+    @Autowired
+	private MaintenanceService maintenanceService;
 
     /**
      * This method should return a list of available meeting rooms based on the specified time range. 
@@ -31,25 +39,38 @@ public class ConferenceRoomService {
      * @param endTime   : meeting end time.
      * @return List of rooms that are available during the specified time range.
      */
-	public List<ConferenceRoom> getAvailableRooms(LocalTime startTime, LocalTime endTime) {
+	public List<ConferenceDetails> getAvailableRooms(LocalTime startTime, LocalTime endTime) {
 		logger.info("Started finding getAvailableRooms slots : {} - {} ",startTime,endTime);
-		List<ConferenceRoom> allRooms = roomRepository.findAll();
+		checkMaintenanceSchedule(startTime,endTime);
+		List<ConferenceRoomData> allRooms = conferenceRoomRepo.findAll();
 		logger.info(" Total no of rooms :{} ",allRooms.size());
-		List<ConferenceRoom> bookedRooms = allRooms.stream()
-				.filter(room -> bookingService.isRoomBooked(room.getId(), startTime, endTime))
+		List<ConferenceRoomData> bookedRooms = allRooms.stream()
+				.filter(room -> bookingService.isRoomBooked(room.getConferenceRoomId(), startTime, endTime))
 				.collect(Collectors.toList());
 		logger.info(" Total no of rooms booked for this slot :{} ",bookedRooms.size());
 		allRooms.removeAll(bookedRooms);
-		
-		return allRooms;
+		return dataMapper.mapConferenceRoomDetails(allRooms);
 	}
+	
 	/**
 	 * This method will find conference 
 	 * @param roomId
 	 * @return
 	 */
-	public ConferenceRoom getRoomById(Long roomId) {
-        return roomRepository.findById(roomId).orElse(null);
+	public ConferenceRoomData getRoomById(Long roomId) {
+        return conferenceRoomRepo.findById(roomId).orElse(null);
     }
+	
+	/**
+	 * This method has a capable of verifying the maintenance schedule for the given time period.
+	 * 
+	 * @param startTime
+	 * @param endTime
+	 */
+	private void checkMaintenanceSchedule(LocalTime startTime, LocalTime endTime) {
+		if (maintenanceService.isMaintenanceScheduled(startTime, endTime)) {
+            throw new RoomBookingException(ConferenceConstants.UNDER_MAINTENANCE);
+        }
+	}
 
 }

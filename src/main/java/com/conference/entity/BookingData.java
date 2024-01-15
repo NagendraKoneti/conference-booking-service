@@ -1,6 +1,5 @@
 package com.conference.entity;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -8,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
@@ -25,6 +26,9 @@ public class BookingData {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private String organizer;
+	@ManyToOne
+    @JoinColumn(name = "conferenceRoomId")
+	private ConferenceRoomData conferenceRoom;
 	private String status;
 	private int participants;
 	private LocalTime startTime;

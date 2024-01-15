@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.conference.entity.ConferenceRoom;
+import com.conference.dto.ConferenceDetails;
+import com.conference.entity.ConferenceRoomData;
 import com.conference.service.ConferenceRoomService;
 import com.conference.util.ConferenceConstants;
 
@@ -32,14 +33,20 @@ public class ConferenceRoomController {
 	private static final Logger logger = LoggerFactory.getLogger(ConferenceRoomController.class);
 
     @Autowired
-    private ConferenceRoomService roomService;
+    private ConferenceRoomService conferenceRoomService;
 
-    
-    @GetMapping(ConferenceConstants.AVAILABLE_PATH)
-	public List<ConferenceRoom> getAvailableRooms(
+    /**
+     * User can be able to see meeting rooms available by giving the time range
+     * 
+     * @param startTime : meeting start time
+     * @param endTime : meeting end time
+     * @return : list of available conferenceRooms 
+     */
+    @GetMapping
+	public List<ConferenceDetails> getAvailableRooms(
 			@RequestParam(START_TIME) @DateTimeFormat(pattern = HH_MM) LocalTime startTime,
             @RequestParam(END_TIME) @DateTimeFormat(pattern = HH_MM) LocalTime endTime) {
     	logger.info("Started getAvailableRooms for the time slot {} -{}",startTime,endTime);
-		return roomService.getAvailableRooms(startTime, endTime);
+		return conferenceRoomService.getAvailableRooms(startTime, endTime);
 	}
 }

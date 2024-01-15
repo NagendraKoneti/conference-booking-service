@@ -1,6 +1,7 @@
 package com.conference.controler;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -17,8 +18,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.conference.dto.ConferenceDetails;
 import com.conference.entity.BookingData;
-import com.conference.entity.ConferenceRoom;
 import com.conference.service.BookingService;
 import com.conference.service.ConferenceRoomService;	
 
@@ -50,7 +51,7 @@ public class ConferenceRoomControllerTest {
 	@Test
 	void bookConferenceRoom_ValidBooking_ReturnsBookedRoom() throws Exception {
 		BookingData newBooking = createValidBooking();
-		when(bookingService.bookConferenceRoom(any())).thenReturn(newBooking);
+		when(bookingService.bookConferenceRoom(any(),anyString())).thenReturn(newBooking);
 
 		mockMvc.perform(post("/bookings/bookConferenceRoom").contentType(MediaType.APPLICATION_JSON).content(
 				"{ \"roomId\": 1, \"startTime\": \"2023-01-01T12:00:00\", \"endTime\": \"2023-01-01T13:00:00\", \"participants\": 5 }"))
@@ -58,8 +59,8 @@ public class ConferenceRoomControllerTest {
 				.andExpect(jsonPath("$.roomId").value(1L)).andExpect(jsonPath("$.participants").value(5));
 	}
 
-	private ConferenceRoom createValidRoom() {
-		ConferenceRoom room = new ConferenceRoom();
+	private ConferenceDetails createValidRoom() {
+		ConferenceDetails room = new ConferenceDetails();
 		room.setId(1L);
 		room.setMaxCapacity(10);
 		return room;
