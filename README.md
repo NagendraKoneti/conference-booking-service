@@ -9,16 +9,32 @@ Swager
 Logback
 MockTesting
 H2DB
+DevTools
+Actuator
+Swagger
+Logging frame work
+
+
+
 
 
 Build Process:
 ---------------
 build : clean install
 
-docker build -t conference-room-booking-app .
+Docker Image
+------------
+docker build -t conference-booking-service .
 
-DB:
-DB: http://localhost:8080/h2-console
+
+Actuator
+-------
+
+http://localhost:8080/actuator/health
+
+H2- DATABASE
+-------------
+http://localhost:8080/h2-console
 
 Swagger URL:
 --------------
