@@ -53,7 +53,7 @@ public class BookingControllerTest {
     }
 	
 	/**
-	 * Test case    : Book conference room with 50 participants. 
+	 * Test case    : Book conference room with 50 participants/ No Rooms free to book  
 	 * Excepted Results : Return 400 Bad Request with error message as No room available or exceeding room capacity.
 	 * 
 	 * @throws Exception
@@ -71,18 +71,56 @@ public class BookingControllerTest {
     }
     
     /**
-     * Test case    : Try without time slots to book conference room
+	 * Test case    : Book conference room when rooms under maintains period (9 am - 10 am)
+	 * Excepted Results : Return 400 Bad Request with error message as No room available or exceeding room capacity.
+	 * 
+	 * @throws Exception
+	 */
+    @Test
+    void bookConferenceRoom_When_Maintains_Period_ThrowsException() throws Exception {
+    	when(bookingService.bookConferenceRoom(any(),anyString())).thenThrow(new RoomBookingException("The room is under maintenance during the requested time slot."));
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/bookings/bookConferenceRoom")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"startTime\": \"09:00:00\"	, \"endTime\": \"10:00:00\", \"participants\": 5 }")
+                .header("loggedInUser", "nagendra"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.message").value("The room is under maintenance during the requested time slot."));
+    }
+    
+    /**
+   	 * Test case    : Book conference room when rooms under maintains period (9 am - 10 am)
+   	 * Excepted Results : Return 400 Bad Request with error message as No room available or exceeding room capacity.
+   	 * 
+   	 * @throws Exception
+   	 */
+       @Test
+       void bookConferenceRoom_Afternoon_For_Morning_Slots_ThrowsException() throws Exception {
+       	when(bookingService.bookConferenceRoom(any(),anyString())).thenThrow(new RoomBookingException("Booking can only be done for the current date and future time slots."));
+           mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/bookings/bookConferenceRoom")
+                   .contentType(MediaType.APPLICATION_JSON)
+                   .content("{ \"startTime\": \"09:00:00\"	, \"endTime\": \"10:00:00\", \"participants\": 5 }")
+                   .header("loggedInUser", "nagendra"))
+                   .andExpect(status().isBadRequest())
+                   .andExpect(jsonPath("$.error").value("Validation failed"))
+                   .andExpect(jsonPath("$.message").value("Booking can only be done for the current date and future time slots."));
+       }
+    
+    /**
+     * Test case        : Try to book conference room with 10 mints intervals 
      * Excepted Results : Return 400 Bad Request with error as Execution failed its Validation failed for argument
      * @throws Exception
      */
     @Test
-    void bookConferenceRoom_MaintenancePeriod_ThrowsException() throws Exception {
+    void bookConferenceRoom_With_10Minuts_Intervals_ThrowsException() throws Exception {
+    	when(bookingService.bookConferenceRoom(any(),anyString())).thenThrow(new RoomBookingException("Booking intervals must be in increments of 15 minutes."));
         mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/bookings/bookConferenceRoom")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"startTime\": \"09:00:00\", \"endTime\": \"09:30:00\", \"participants\": 2 }")
+                .content("{\"startTime\": \"10:10:00\", \"endTime\": \"10:30:00\", \"participants\": 2 }")
                 .header("loggedInUser", "nagendra"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Execution failed"));                
+                .andExpect(jsonPath("$.error").value("Validation failed"))
+                .andExpect(jsonPath("$.message").value("Booking intervals must be in increments of 15 minutes."));
     }
     /**
      * Test Scenario    : Try without time slots to book conference room ( Validation failed )
