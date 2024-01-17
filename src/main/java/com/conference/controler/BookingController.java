@@ -20,6 +20,11 @@ import com.conference.entity.BookingData;
 import com.conference.service.BookingService;
 import com.conference.util.ConferenceConstants;	
 
+/**
+ * 01/2024 
+ * @author Nagendra
+ */
+
 @RestController
 @RequestMapping(ConferenceConstants.BASE_PATH + ConferenceConstants.BOOKINGS_PATH)
 @Validated

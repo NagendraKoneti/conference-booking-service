@@ -10,6 +10,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import lombok.Data;
 
+/**
+ * 01/2024 
+ * @author Nagendra
+ */
+
 
 @ControllerAdvice
 public class GlobalExceptionHandler {

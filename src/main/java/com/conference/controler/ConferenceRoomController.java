@@ -17,9 +17,13 @@ import com.conference.dto.ConferenceDetails;
 import com.conference.service.ConferenceRoomService;
 import com.conference.util.ConferenceConstants;
 
+/**
+ * 01/2024 
+ * @author Nagendra
+ */
 
 @RestController	
-@RequestMapping(ConferenceConstants.BASE_PATH + "/conference-rooms")
+@RequestMapping(ConferenceConstants.BASE_PATH+ConferenceConstants.CONFERENCE_ROOMS )
 @Validated
 public class ConferenceRoomController {
 	

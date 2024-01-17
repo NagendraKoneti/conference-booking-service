@@ -4,6 +4,10 @@ import java.time.LocalTime;
 
 import lombok.Data;
 
+/**
+ * 01/2024 
+ * @author Nagendra
+ */
 @Data
 public class MaintenancePeriodConfig {
 

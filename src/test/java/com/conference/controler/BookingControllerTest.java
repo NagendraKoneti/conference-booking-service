@@ -3,99 +3,117 @@ package com.conference.controler;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.conference.entity.BookingData;
 import com.conference.exception.RoomBookingException;
-import com.conference.service.BookingService;
-import com.conference.util.AppProperties;
-import com.conference.util.MaintenancePeriodConfig;
+import com.conference.service.BookingServiceImpl;
 
-@ExtendWith(MockitoExtension.class)
-@SpringBootTest
-@AutoConfigureMockMvc
-@Sql(scripts = "classpath:data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+/**
+ * 01/2024 
+ * @author Nagendra
+ */
+@WebMvcTest(controllers = { BookingController.class })
 public class BookingControllerTest {
 
     @Autowired	
     private MockMvc mockMvc;
 
-    @Mock
-    private BookingService bookingService;
+    @MockBean
+    private BookingServiceImpl bookingService;
     
-    @Mock
-    private AppProperties appProperties;
-    
-    
-    @BeforeEach
-    public void setProperties() {
-    	lenient().when(appProperties.getMaintenancePeriods()).thenReturn(getMaintenancePeriods());
-    }
-    
+	/**
+	 * Test case : Book conference room with 5 participants. 
+	 * Excepted Results : Return 201 Response code with booked conference room details.
+	 * 
+	 */
 	@Test
     void bookConferenceRoom_ValidBooking_ReturnsBookedRoom() throws Exception {
         BookingData newBooking = createValidBooking();
         lenient().when(bookingService.bookConferenceRoom(any(),anyString())).thenReturn(newBooking);
-        mockMvc.perform(MockMvcRequestBuilders.post("/bookings/bookConferenceRoom")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/bookings/bookConferenceRoom")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{ \"roomId\": 1, \"startTime\": \"17:00:00\", \"endTime\": \"1:00:00\", \"participants\": 2 }")
-        		.header("LoggedInUser", "nagendra"))
+                .content("{\"startTime\": \"16:00:00\", \"endTime\": \"17:00:00\", \"participants\": 2 }")
+        		.header("loggedInUser", "nagendra"))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.participants").value(2));
+                .andExpect(jsonPath("$.participants").value(5));
     }
 	
+	/**
+	 * Test case    : Book conference room with 50 participants. 
+	 * Excepted Results : Return 400 Bad Request with error message as No room available or exceeding room capacity.
+	 * 
+	 * @throws Exception
+	 */
     @Test
-    void bookConferenceRoom_InvalidRoom_ThrowsException() throws Exception {
-    	lenient(). when(bookingService.bookConferenceRoom(any(),anyString())).thenThrow(new RoomBookingException("Invalid room or exceeding room capacity."));
-        mockMvc.perform(MockMvcRequestBuilders.post("/bookings/bookConferenceRoom")
+    void bookConferenceRoom_NoRoom_Available_Or_ExcedingCapacity_ThrowsException() throws Exception {
+    	when(bookingService.bookConferenceRoom(any(),anyString())).thenThrow(new RoomBookingException("No room available or exceeding room capacity."));
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/bookings/bookConferenceRoom")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{ \"roomId\": 1, \"startTime\": \"14:00:00\"	, \"endTime\": \"15:00:00\", \"participants\": 5 }")
-                .header("LoggedInUser", "nagendra"))
+                .content("{ \"startTime\": \"14:00:00\"	, \"endTime\": \"15:00:00\", \"participants\": 5 }")
+                .header("loggedInUser", "nagendra"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Validation failed"))
-                .andExpect(jsonPath("$.message").value("Invalid room or exceeding room capacity."));
+                .andExpect(jsonPath("$.message").value("No room available or exceeding room capacity."));
     }
-
-    @Test
-    void bookConferenceRoom_InvalidRequestBody_ThrowsException() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/bookings/bookConferenceRoom")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{ \"roomId\": 1, \"participants\": 5 }")
-                .header("LoggedInUser", "nagendra"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Execution failed"));
-                /*.andExpect(jsonPath("$.message").value("Start time cannot be null"));*/
-    }
-
-    private List<MaintenancePeriodConfig> getMaintenancePeriods() {
-    	List<MaintenancePeriodConfig> maintenancePeriods = new ArrayList<>();
-    	MaintenancePeriodConfig maintenancePeriod = new MaintenancePeriodConfig();
-    	maintenancePeriod.setStartTime(LocalTime.of(10,00));
-    	maintenancePeriod.setEndTime(LocalTime.of(11,00));
-    	maintenancePeriods.add(maintenancePeriod);
-		return maintenancePeriods;
-	}
-
     
+    /**
+     * Test case    : Try without time slots to book conference room
+     * Excepted Results : Return 400 Bad Request with error as Execution failed its Validation failed for argument
+     * @throws Exception
+     */
+    @Test
+    void bookConferenceRoom_MaintenancePeriod_ThrowsException() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/bookings/bookConferenceRoom")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"startTime\": \"09:00:00\", \"endTime\": \"09:30:00\", \"participants\": 2 }")
+                .header("loggedInUser", "nagendra"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Execution failed"));                
+    }
+    /**
+     * Test Scenario    : Try without time slots to book conference room ( Validation failed )
+     * Excepted Results : Return 400 Bad Request with error as Execution failed its Validation failed for argument
+     * @throws Exception
+     */
+    @Test
+    void bookConferenceRoom_Without_TimeSloats_ThrowsException() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/bookings/bookConferenceRoom")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"participants\": 5 }")
+                .header("loggedInUser", "nagendra"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Execution failed"));                
+    }
+    
+    /**
+     * Test Scenario    : Try without participants to book conference room ( Validation failed )
+     * Excepted Results : Return 400 Bad Request with error as Execution failed its Validation failed for argument
+     * @throws Exception
+     */
+    @Test
+    void bookConferenceRoom_Without_Participants_ThrowsException() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/bookings/bookConferenceRoom")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"startTime\": \"14:00:00\" , \"endTime\": \"15:00:00\" }")
+                .header("loggedInUser", "nagendra"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Execution failed"));                
+    }
+
     private BookingData createValidBooking() {
         BookingData BookingData = new BookingData();
         BookingData.setId(1L);

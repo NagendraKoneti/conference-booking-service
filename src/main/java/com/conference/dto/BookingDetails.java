@@ -8,12 +8,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ *01/2024 
+ * @author Nagendra
+ */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class BookingDetails {
 
-	private Long roomId;
 	@NotNull
     private LocalTime startTime;
 	@NotNull

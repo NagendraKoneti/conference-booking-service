@@ -1,5 +1,9 @@
 package com.conference.util;
 
+/**
+ * 01/2024
+ * @author Nagendra
+ */
 public interface ConferenceConstants {
 
 	String BOOKED = "Booked";
@@ -13,6 +17,8 @@ public interface ConferenceConstants {
 	String BOOK_CONFERENCE_ROOM_PATH = "/bookConferenceRoom";
 	
 	String BOOKINGS_PATH = "/bookings";
+	
+	String CONFERENCE_ROOMS= "/conference-rooms";
 
 	String LOGGED_IN_USER = "loggedInUser";
 
@@ -20,7 +26,7 @@ public interface ConferenceConstants {
 
 	String INCORRECT_BOOKING_INTERVALS = "Booking intervals must be in increments of 15 minutes.";
 
-	String ALL_ROOMS_BOOKED = "Rooms are unavilable for the requested time slot.";
+	String ALL_ROOMS_BOOKED = "No room available or exceeding room capacity.";
 
 	String BOOKING_FOR_FUTURE_SLOTS = "Booking can only be done for the current date and future time slots.";
 
