@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.conference.dto.BookingDetails;
+import com.conference.dto.BookingResponse;
 import com.conference.dto.ConferenceDetails;
 import com.conference.entity.BookingData;
 import com.conference.entity.ConferenceRoomData;
@@ -38,4 +39,20 @@ public class DataMapper {
 		  bookingData.setParticipants(bookingDetails.getParticipants());
 		  return bookingData;		
 		}
+	
+	/**
+	 * This mapping is to convert the confirmed booking information into dto to share consumer
+	 * @param confirmedBooking : confirmed booking information as per the request
+	 * @return BookingResponse : return mapped response 
+	 */
+	public BookingResponse mapBookingDataToBookingResponse(BookingData confirmedBooking) {
+		BookingResponse bookingResponse = new BookingResponse();
+		bookingResponse.setConferenceRoomMaxCapacity(confirmedBooking.getConferenceRoom().getMaxCapacity());
+		bookingResponse.setConferenceRoomName(confirmedBooking.getConferenceRoom().getName());
+		bookingResponse.setParticipants(confirmedBooking.getParticipants());
+		bookingResponse.setStatus(confirmedBooking.getStatus());
+		bookingResponse.setStartTime(confirmedBooking.getStartTime());
+		bookingResponse.setEndTime(confirmedBooking.getEndTime());
+		return bookingResponse;
+	}
 }

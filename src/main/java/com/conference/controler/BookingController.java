@@ -16,9 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.conference.dto.BookingDetails;
+import com.conference.dto.BookingResponse;
 import com.conference.entity.BookingData;
+import com.conference.exception.RoomBookingException;
 import com.conference.service.BookingService;
-import com.conference.util.ConferenceConstants;	
+import com.conference.util.ConferenceConstants;
+import com.conference.util.Response;	
 
 /**
  * 01/2024 
@@ -39,16 +42,21 @@ public class BookingController {
      *  User can book the conference by providing start date, end date and no of participants.
      *  
      * @param bookingDetails: user provided booking information to block conference room
-     * @param request : RequestHeader requestHeader
+     * @param request : RequestHeader requestHeader 
      * 
      * @return booking information
      */
     @PostMapping(ConferenceConstants.BOOK_CONFERENCE_ROOM_PATH)
-	public ResponseEntity<BookingData> bookConferenceRoom(@RequestBody @Valid BookingDetails bookingDetails,
-			@RequestHeader(value = ConferenceConstants.LOGGED_IN_USER, required = false) String loggedInUser) {
-    	logger.info("The logged in user is : {}",loggedInUser);
-        BookingData bookedRoom = bookingService.bookConferenceRoom(bookingDetails,loggedInUser);
-        return new ResponseEntity<>(bookedRoom, HttpStatus.CREATED);
+	public ResponseEntity<Response<BookingResponse>> bookConferenceRoom(@RequestBody @Valid BookingDetails bookingDetails,
+			@RequestHeader(value = ConferenceConstants.LOGGED_IN_USER, required = false) String loggedInUser) throws RoomBookingException {
+    	logger.info("The logged in user is: {} to book conference room ",loggedInUser);
+    	 BookingResponse bookingconfirmationDetails = bookingService.bookConferenceRoom(bookingDetails,loggedInUser);
+        Response<BookingResponse> response = Response.<BookingResponse>builder()
+    			.status(ConferenceConstants.SUCCESS)
+    			.data(bookingconfirmationDetails)
+    			.build();          
+        logger.info("Booked conference room done - {}",bookingconfirmationDetails.getStatus());
+      return  ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
 }

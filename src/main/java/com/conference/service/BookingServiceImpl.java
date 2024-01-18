@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.conference.dto.BookingDetails;
+import com.conference.dto.BookingResponse;
 import com.conference.entity.BookingData;
 import com.conference.entity.ConferenceRoomData;
+import com.conference.exception.ErrorCodes;
 import com.conference.exception.RoomBookingException;
 import com.conference.mapper.DataMapper;
 import com.conference.repo.BookingRepository;
@@ -48,18 +50,19 @@ public class BookingServiceImpl implements BookingService  {
      *   d) Check if the requested time slot is available (First Come First Serve)
      *   e) Check if booking is for the current date
      *   
-     * @param bookingDetails
-     * @param loggedInUser 
-     * @return booking information
+     * @param bookingDetails : Booking information requested by customer
+     * @param loggedInUser : Logged in user name ( Requested customer identity)
+     * @return booking information : Booking confirmation details.
      */
 	@Override
-    public BookingData bookConferenceRoom(BookingDetails bookingDetails, String loggedInUser) {
+    public BookingResponse bookConferenceRoom(BookingDetails bookingDetails, String loggedInUser) {
     	validateBookingForCurrentDate(bookingDetails.getStartTime());
         validateBookingInterval(bookingDetails); 
         validateRoomCapacity(bookingDetails);  
         checkMaintenanceSchedule(bookingDetails); 
         ConferenceRoomData availableRoom = getAvailabileConferenceRoom(bookingDetails);
-        return bookingRepository.save(dataMapper.mapToBookingDataEntity(bookingDetails,loggedInUser,availableRoom));
+        BookingData confirmedBooking =  bookingRepository.save(dataMapper.mapToBookingDataEntity(bookingDetails,loggedInUser,availableRoom));
+		return dataMapper.mapBookingDataToBookingResponse(confirmedBooking);
     }
 
     
@@ -86,7 +89,7 @@ public class BookingServiceImpl implements BookingService  {
      */
     private void checkMaintenanceSchedule(BookingDetails bookingDetails) {
         if (maintenanceService.isMaintenanceScheduled(bookingDetails.getStartTime(), bookingDetails.getEndTime())) {
-            throw new RoomBookingException(ConferenceConstants.UNDER_MAINTENANCE);
+            throw new RoomBookingException(ErrorCodes.UNDER_MAINTENANCE_EXC.name() , ErrorCodes.UNDER_MAINTENANCE_EXC.getErrorMessage());
         }
     }
     
@@ -99,7 +102,7 @@ public class BookingServiceImpl implements BookingService  {
 	private void validateRoomCapacity(BookingDetails bookingDetails) {
 		int participants = bookingDetails.getParticipants();
 		Optional.of(participants).filter(p -> p > 1)
-				.orElseThrow(() -> new RoomBookingException(ConferenceConstants.LESS_PARTICIPANTS));
+				.orElseThrow(() -> new RoomBookingException(ErrorCodes.LESS_PARTICIPANTS.name(),(ErrorCodes.LESS_PARTICIPANTS.getErrorMessage())));
 	}
     
     /**
@@ -111,7 +114,7 @@ public class BookingServiceImpl implements BookingService  {
     	Optional.ofNullable(startTime)
         .ifPresent(currentLocalTime -> {
             if (!currentLocalTime.isAfter(LocalTime.now())) {
-                throw new RoomBookingException(ConferenceConstants.BOOKING_FOR_FUTURE_SLOTS);
+                throw new RoomBookingException(ErrorCodes.BOOKING_FOR_FUTURE_SLOTS.name(),ErrorCodes.BOOKING_FOR_FUTURE_SLOTS.getErrorMessage());
             }
         });
     }
@@ -131,7 +134,7 @@ public class BookingServiceImpl implements BookingService  {
     		 if(!isRoomBooked(conferenceRoomData.getConferenceRoomId(), bookingDetails.getStartTime(), bookingDetails.getEndTime()))
     			 return conferenceRoomData;
     	}
-            throw new RoomBookingException(ConferenceConstants.ALL_ROOMS_BOOKED);
+            throw new RoomBookingException(ErrorCodes.ALL_ROOMS_BOOKED.name(),ErrorCodes.ALL_ROOMS_BOOKED.getErrorMessage());
     }
     
     /**
@@ -141,7 +144,7 @@ public class BookingServiceImpl implements BookingService  {
 	 */
     private void validateBookingInterval(BookingDetails bookingDetails) {
         if (!isValidTimeInterval(bookingDetails.getStartTime(), bookingDetails.getEndTime())) {
-            throw new RoomBookingException(ConferenceConstants.INCORRECT_BOOKING_INTERVALS);
+            throw new RoomBookingException(ErrorCodes.INCORRECT_BOOKING_INTERVALS.name(),ErrorCodes.INCORRECT_BOOKING_INTERVALS.getErrorMessage());
         }
     }
     /**

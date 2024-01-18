@@ -23,6 +23,6 @@ public class BookingDetails {
 	@NotNull
     private LocalTime endTime;
 	@NotNull
-    private int participants;
+    private Integer participants;
     	
 }

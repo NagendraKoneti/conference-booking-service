@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.conference.dto.ConferenceDetails;
 import com.conference.service.ConferenceRoomService;
 import com.conference.util.ConferenceConstants;
+import com.conference.util.Response;
 
 /**
  * 01/2024 
@@ -46,10 +49,14 @@ public class ConferenceRoomController {
      * @return : list of available conferenceRooms 
      */
     @GetMapping
-	public List<ConferenceDetails> getAvailableRooms(
+	public ResponseEntity<Response<List<ConferenceDetails>>> getAvailableConferenceRooms(
 			@RequestParam(START_TIME) @DateTimeFormat(pattern = HH_MM) LocalTime startTime,
             @RequestParam(END_TIME) @DateTimeFormat(pattern = HH_MM) LocalTime endTime) {
     	logger.info("Started getAvailableRooms for the time slot {} -{}",startTime,endTime);
-		return conferenceRoomService.getAvailableRooms(startTime, endTime);
+    	Response<List<ConferenceDetails>> response = Response.<List<ConferenceDetails>>builder()
+    			.status(ConferenceConstants.SUCCESS)
+    			.data(conferenceRoomService.getAvailableRooms(startTime, endTime))
+    			.build();          
+      return  ResponseEntity.status(HttpStatus.OK).body(response);
 	}
 }

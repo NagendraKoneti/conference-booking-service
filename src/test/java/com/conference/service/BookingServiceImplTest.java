@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalTime;
@@ -18,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.conference.dto.BookingDetails;
+import com.conference.dto.BookingResponse;
 import com.conference.entity.BookingData;
 import com.conference.entity.ConferenceRoomData;
 import com.conference.exception.RoomBookingException;
@@ -56,25 +58,22 @@ class BookingServiceImplTest {
     @Test
     void bookRoom_ValidBooking_ReturnsBooking() {
         BookingDetails newBooking = createValidBooking();
-        //when(conferenceRoomService.getRoomById(anyLong())).thenReturn(createValidRoom());
         when(maintenanceService.isMaintenanceScheduled(any(), any())).thenReturn(false);
         when(conferenceRoomRepository.findByMaxCapacityGreaterThanEqualOrderByMaxCapacityAsc(anyInt())).thenReturn(Collections.singletonList(createValidRoom()));
         when(bookingRepository.save(any())).thenReturn(createBookingData());
-        BookingData bookedRoom = bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER);
+        BookingResponse bookedRoom = bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER);
         assertNotNull(bookedRoom);
     }
 
     @Test
     void bookRoom_InvalidRoom_ThrowsException() {
     	BookingDetails newBooking = createValidBooking();
-       // when(conferenceRoomService.getRoomById(anyLong())).thenReturn(null);
         assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER));
     }
 
    @Test
     void bookRoom_MaintenanceScheduled_ThrowsException() {
     	BookingDetails newBooking = createValidBooking();
-      //  when(conferenceRoomService.getRoomById(anyLong())).thenReturn(createValidRoom());
         when(maintenanceService.isMaintenanceScheduled(any(), any())).thenReturn(true);
 
         assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER));

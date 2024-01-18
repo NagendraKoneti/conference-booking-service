@@ -3,6 +3,7 @@ package com.conference.service;
 import java.time.LocalTime;
 
 import com.conference.dto.BookingDetails;
+import com.conference.dto.BookingResponse;
 import com.conference.entity.BookingData;
 
 /**
@@ -23,7 +24,7 @@ public interface BookingService {
 	 * @param loggedInUser 
 	 * @return booking information
 	 */
-	BookingData bookConferenceRoom(BookingDetails bookingDetails, String loggedInUser);
+	BookingResponse bookConferenceRoom(BookingDetails bookingDetails, String loggedInUser);
 
 	/**
 	 * This method has a capable of verifies availability of the room for requested time period

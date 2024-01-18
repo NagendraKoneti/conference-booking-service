@@ -3,8 +3,12 @@ server:
   servlet:
     application-display-name: conference-booking-service
     
-    
 spring:
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  sleuth:
+    enabled: true
   datasource:
     url: jdbc:h2:mem:testdb
     driverClassName: org.h2.Driver
@@ -20,10 +24,19 @@ spring:
     console:
       enabled: true # Enabled for access h2 console for Dev
       path: /h2-console
+  jpa:
+    hibernate:
+        ddl-auto: create
+    database-platform:
+        org.hibernate.dialect.H2Dialect
 logging:
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
-    org.springframework.web: INFO
+    org:
+      springframework:
+        web: INFO
+        cloud:
+          sleuth: DEBUG
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
     

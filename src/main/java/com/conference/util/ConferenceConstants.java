@@ -22,16 +22,8 @@ public interface ConferenceConstants {
 
 	String LOGGED_IN_USER = "loggedInUser";
 
-	String UNDER_MAINTENANCE = "The room is under maintenance during the requested time slot.";
-
-	String INCORRECT_BOOKING_INTERVALS = "Booking intervals must be in increments of 15 minutes.";
-
-	String ALL_ROOMS_BOOKED = "No room available or exceeding room capacity.";
-
-	String BOOKING_FOR_FUTURE_SLOTS = "Booking can only be done for the current date and future time slots.";
-
-	String LESS_PARTICIPANTS = "Number of participants must be greater than 1.";
-
-	String EXCEEDING_CAPACITY = "Exceeding room capacity.";
+	String ERROR = "error";
+	
+	String SUCCESS = "success";
 
 }

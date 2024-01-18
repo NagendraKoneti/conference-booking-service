@@ -1,14 +1,27 @@
 package com.conference.exception;
 
+import lombok.Data;
+
 /**
  * 01/2024 
  * @author Nagendra
  */
+@Data
 public class RoomBookingException extends RuntimeException {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 7514408454818505244L;
+    private String errorCode;
+    private String message;
 
-	public RoomBookingException(String message) {
-        super(message);
+    public RoomBookingException(Throwable e) {
+        super(e);
+        this.errorCode = null;
+        this.message = e.getMessage();
+    }
+
+    public RoomBookingException(String errorCode, String message) {
+        super();
+        this.errorCode = errorCode;
+        this.message = message;
     }
 }

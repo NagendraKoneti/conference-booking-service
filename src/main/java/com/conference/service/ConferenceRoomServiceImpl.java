@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.conference.dto.ConferenceDetails;
 import com.conference.entity.ConferenceRoomData;
+import com.conference.exception.ErrorCodes;
 import com.conference.exception.RoomBookingException;
 import com.conference.mapper.DataMapper;
 import com.conference.repo.ConferenceRoomRepository;
@@ -85,7 +86,7 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
 	 */
 	private void checkMaintenanceSchedule(LocalTime startTime, LocalTime endTime) {
 		if (maintenanceService.isMaintenanceScheduled(startTime, endTime)) {
-            throw new RoomBookingException(ConferenceConstants.UNDER_MAINTENANCE);
+            throw new RoomBookingException(ErrorCodes.UNDER_MAINTENANCE_EXC.name(),ErrorCodes.UNDER_MAINTENANCE_EXC.getErrorMessage());
         }
 	}
 
