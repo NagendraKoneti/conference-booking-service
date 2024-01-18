@@ -1,7 +1,9 @@
 package com.conference.service;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -144,6 +146,26 @@ public class BookingServiceImplTest {
    	newBooking.setEndTime(LocalTime.of(10,10));
    	
    assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER));
+   }
+   
+   /**
+    * Test case : Verify the Room no 1 is booked when rooms available then return room details
+    *  
+    */
+   @Test
+   public void testIsRoomBooked_When_Room_Available_Then_Return_False() {
+	   when(bookingRepository.findByConferenceRoom_ConferenceRoomIdAndEndTimeAfterAndStartTimeBefore(any(),any(),any())).thenReturn(Collections.singletonList(new BookingData()));
+	   assertTrue(bookingService.isRoomBooked(1l,LocalTime.now(),LocalTime.of(LocalTime.now().getHour()+1,30)));
+   }
+
+   /**
+    * Test case : Verify the Room no 1 is booked when room already booked then return empty list 
+    *  
+    */
+   @Test
+   public void testIsRoomBooked_When_Room_Available_Then_Return_True() {
+	   when(bookingRepository.findByConferenceRoom_ConferenceRoomIdAndEndTimeAfterAndStartTimeBefore(any(),any(),any())).thenReturn(Collections.emptyList());
+	   assertFalse(bookingService.isRoomBooked(1l,LocalTime.now(),LocalTime.of(LocalTime.now().getHour()+1,30)));
    }
 
 

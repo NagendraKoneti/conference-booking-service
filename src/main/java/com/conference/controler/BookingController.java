@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.conference.dto.BookingDetails;
 import com.conference.dto.BookingResponse;
-import com.conference.entity.BookingData;
 import com.conference.exception.RoomBookingException;
 import com.conference.service.BookingService;
 import com.conference.util.ConferenceConstants;
@@ -49,7 +48,7 @@ public class BookingController {
     @PostMapping(ConferenceConstants.BOOK_CONFERENCE_ROOM_PATH)
 	public ResponseEntity<Response<BookingResponse>> bookConferenceRoom(@RequestBody @Valid BookingDetails bookingDetails,
 			@RequestHeader(value = ConferenceConstants.LOGGED_IN_USER, required = false) String loggedInUser) throws RoomBookingException {
-    	logger.info("The logged in user is: {} to book conference room ",loggedInUser);
+    	logger.info("Booking reqeust accepted for the slot {} - {} ",bookingDetails.getStartTime().toString(),bookingDetails.getEndTime().toString());
     	 BookingResponse bookingconfirmationDetails = bookingService.bookConferenceRoom(bookingDetails,loggedInUser);
         Response<BookingResponse> response = Response.<BookingResponse>builder()
     			.status(ConferenceConstants.SUCCESS)

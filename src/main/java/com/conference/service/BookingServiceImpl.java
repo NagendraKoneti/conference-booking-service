@@ -4,6 +4,8 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +31,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookingServiceImpl implements BookingService  {
+	
+	private static final Logger logger = LoggerFactory.getLogger(BookingServiceImpl.class);
 	
 	@Autowired
     private BookingRepository bookingRepository;
@@ -56,11 +60,13 @@ public class BookingServiceImpl implements BookingService  {
      */
 	@Override
     public BookingResponse bookConferenceRoom(BookingDetails bookingDetails, String loggedInUser) {
+		logger.info("Booking in process.....");
     	validateBookingForCurrentDate(bookingDetails.getStartTime());
         validateBookingInterval(bookingDetails); 
         validateRoomCapacity(bookingDetails);  
         checkMaintenanceSchedule(bookingDetails); 
         ConferenceRoomData availableRoom = getAvailabileConferenceRoom(bookingDetails);
+        logger.info("Booking is confimed`, blockng same in process.....{} ",availableRoom.getName());
         BookingData confirmedBooking =  bookingRepository.save(dataMapper.mapToBookingDataEntity(bookingDetails,loggedInUser,availableRoom));
 		return dataMapper.mapBookingDataToBookingResponse(confirmedBooking);
     }
@@ -77,6 +83,7 @@ public class BookingServiceImpl implements BookingService  {
 	 */
 	@Override
     public boolean isRoomBooked(Long roomId, LocalTime startTime, LocalTime endTime) {
+		logger.info("Verifying the reqeusted Room is Booked -- in process.....");
         List<BookingData> overlappingBookings = bookingRepository
                 .findByConferenceRoom_ConferenceRoomIdAndEndTimeAfterAndStartTimeBefore(roomId, startTime, endTime);
         return !overlappingBookings.isEmpty();
@@ -111,6 +118,7 @@ public class BookingServiceImpl implements BookingService  {
      */
 	@Override
     public void validateBookingForCurrentDate(LocalTime startTime) {
+		logger.info("Booking is in process validating requested slots....{} ",startTime.toString());
     	Optional.ofNullable(startTime)
         .ifPresent(currentLocalTime -> {
             if (!currentLocalTime.isAfter(LocalTime.now())) {
@@ -128,7 +136,7 @@ public class BookingServiceImpl implements BookingService  {
      * @return 
      */
     private ConferenceRoomData getAvailabileConferenceRoom(BookingDetails bookingDetails) {
-    	
+    	logger.info("Booking is in process trying to find available rooms....");
     	List<ConferenceRoomData> allRooms = conferenceRoomRepo.findByMaxCapacityGreaterThanEqualOrderByMaxCapacityAsc(bookingDetails.getParticipants());
     	for (ConferenceRoomData conferenceRoomData : allRooms) {
     		 if(!isRoomBooked(conferenceRoomData.getConferenceRoomId(), bookingDetails.getStartTime(), bookingDetails.getEndTime()))
@@ -143,6 +151,7 @@ public class BookingServiceImpl implements BookingService  {
 	 * @param bookingDetails
 	 */
     private void validateBookingInterval(BookingDetails bookingDetails) {
+    	logger.info("Booking is in process validating requested slots Intervals....");
         if (!isValidTimeInterval(bookingDetails.getStartTime(), bookingDetails.getEndTime())) {
             throw new RoomBookingException(ErrorCodes.INCORRECT_BOOKING_INTERVALS.name(),ErrorCodes.INCORRECT_BOOKING_INTERVALS.getErrorMessage());
         }
@@ -156,6 +165,7 @@ public class BookingServiceImpl implements BookingService  {
      * @return boolean : true if startTime and endTime are multiple of 15 else false
      */
     private boolean isValidTimeInterval(LocalTime startTime, LocalTime endTime) {
+    	logger.info("Booking is in process validating requested slots 3 conditions....");
         if (!isStartTimeBeforeEndTime(startTime, endTime) || !isTimeIn15MinuteIncrements(startTime) || !isTimeIn15MinuteIncrements(endTime)) {
             return false;
         }
@@ -170,6 +180,7 @@ public class BookingServiceImpl implements BookingService  {
      * @return boolean : true for end time is after start time else false
      */
     private boolean isStartTimeBeforeEndTime(LocalTime startTime, LocalTime endTime) {
+    	logger.info("Booking is in process validating requested slots startTime should be prior to endTime....");
         return startTime.isBefore(endTime);
     }
     /**
@@ -178,6 +189,7 @@ public class BookingServiceImpl implements BookingService  {
      * @return boolean: true if minutes are multiples of 15 else false
      */
     private boolean isTimeIn15MinuteIncrements(LocalTime startTime) {
+    	logger.info("Booking is in process validating requested slots should be 15mints intervals....");
         return startTime.getMinute() % ConferenceConstants.MINITS_15 == ConferenceConstants.ZERO;
     }
     

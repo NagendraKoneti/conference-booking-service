@@ -15,7 +15,6 @@ import com.conference.exception.ErrorCodes;
 import com.conference.exception.RoomBookingException;
 import com.conference.mapper.DataMapper;
 import com.conference.repo.ConferenceRoomRepository;
-import com.conference.util.ConferenceConstants;
 
 /**
  * 01/2024 
@@ -65,6 +64,7 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
 	 * @param startTime
 	 */
 	private void validateBookingForCurrentDate(LocalTime startTime) {
+		logger.info("Validationg booking slots are feature dates.....");
 		bookingServiceImpl.validateBookingForCurrentDate(startTime);
 	}
 
@@ -75,6 +75,7 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
 	 */
 	@Override
 	public ConferenceRoomData getRoomById(Long roomId) {
+		logger.info("Getting conference room details be ID {}.......",roomId);
         return conferenceRoomRepo.findById(roomId).orElse(null);
     }
 	
@@ -85,6 +86,7 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
 	 * @param endTime
 	 */
 	private void checkMaintenanceSchedule(LocalTime startTime, LocalTime endTime) {
+		logger.info("Checking maintenance schedules .......");
 		if (maintenanceService.isMaintenanceScheduled(startTime, endTime)) {
             throw new RoomBookingException(ErrorCodes.UNDER_MAINTENANCE_EXC.name(),ErrorCodes.UNDER_MAINTENANCE_EXC.getErrorMessage());
         }
