@@ -4,13 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,14 +24,13 @@ import com.conference.exception.RoomBookingException;
 import com.conference.mapper.DataMapper;
 import com.conference.repo.BookingRepository;
 import com.conference.repo.ConferenceRoomRepository;
-import com.conference.util.MaintenancePeriodConfig;
 
 /**
  * 01/2024 
  * @author Nagendra
  */
 @ExtendWith(MockitoExtension.class)
-class BookingServiceImplTest {
+public class BookingServiceImplTest {
 
 	private static final String LOGGED_IN_USER = "loggedInUser";
 
@@ -55,61 +52,124 @@ class BookingServiceImplTest {
     @InjectMocks
     private BookingServiceImpl bookingService;
     
+    /**
+     * Test case : User book conference room successfully 
+     * 
+     * 
+     */
     @Test
-    void bookRoom_ValidBooking_ReturnsBooking() {
+   public void bookRoom_ValidBooking_ReturnsBooking() {
         BookingDetails newBooking = createValidBooking();
         when(maintenanceService.isMaintenanceScheduled(any(), any())).thenReturn(false);
-        when(conferenceRoomRepository.findByMaxCapacityGreaterThanEqualOrderByMaxCapacityAsc(anyInt())).thenReturn(Collections.singletonList(createValidRoom()));
+        when(dataMapper.mapToBookingDataEntity(any(),anyString(),any())).thenReturn(new BookingData());
+        when(dataMapper.mapBookingDataToBookingResponse(any())).thenReturn(new BookingResponse());
+        when(conferenceRoomRepository.findByMaxCapacityGreaterThanEqualOrderByMaxCapacityAsc(anyInt())).thenReturn(Collections.singletonList(createValidConferenceRoom()));
         when(bookingRepository.save(any())).thenReturn(createBookingData());
         BookingResponse bookedRoom = bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER);
         assertNotNull(bookedRoom);
     }
-
+    
+    /**
+     * Test case : User unable to book conference room due to no availability.
+     */
     @Test
-    void bookRoom_InvalidRoom_ThrowsException() {
+    public void bookRoom_NoRooms_Available_ThrowsException() {
     	BookingDetails newBooking = createValidBooking();
         assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER));
     }
-
+    /**
+     * Test case : User unable to book conference room due to participants are not more than 1
+     */
+    @Test
+    public void bookRoom_For_Single_Participants_ThrowsException() {
+    	BookingDetails newBooking = createValidBooking();
+    	newBooking.setParticipants(1);
+        assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER));
+    }
+    
+    /**
+     * Test case : User unable to book conference room due to participants are more than what we have capacity try with 55
+     * 
+     */
+    @Test
+   public void bookRoom_For_55_Participants_ThrowsException() {
+        BookingDetails newBooking = createValidBooking();
+        newBooking.setParticipants(55);
+        when(maintenanceService.isMaintenanceScheduled(any(), any())).thenReturn(false);
+        when(conferenceRoomRepository.findByMaxCapacityGreaterThanEqualOrderByMaxCapacityAsc(anyInt())).thenReturn(Collections.emptyList());
+        assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER));
+    }
+    
+    /**
+     * Test case : User unable to book conference room due to Invalid start and end time(End is prior to start time)
+     */
+    @Test
+    public void bookRoom_Invalid_BookData_EndTime_Prior_StartTime_ThrowsException() {
+    	BookingDetails newBooking = createValidBooking();
+    	newBooking.setStartTime(LocalTime.of(10,00));
+    	newBooking.setEndTime(LocalTime.of(9,00));
+    	
+        assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER));
+    }
+    /**
+     * Test case : User Unable to book the conference room due to the schedule is under maintenance scheduled (17-18hr) 
+     */
    @Test
-    void bookRoom_MaintenanceScheduled_ThrowsException() {
+   public void bookRoom_MaintenanceScheduled_ThrowsException() {
     	BookingDetails newBooking = createValidBooking();
+    	newBooking.setStartTime(LocalTime.of(17,00));
+    	newBooking.setEndTime(LocalTime.of(18,00));
         when(maintenanceService.isMaintenanceScheduled(any(), any())).thenReturn(true);
-
         assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER));
     }
+   
+   /**
+    * Test case : User Unable to book the conference room due to the schedule is past time (7-8hr) 
+    */
+  @Test
+  public void bookRoom_PastTime_ThrowsException() {
+   	BookingDetails newBooking = createValidBooking();
+   	newBooking.setStartTime(LocalTime.of(LocalTime.now().getHour()-1,00));
+   	newBooking.setEndTime(LocalTime.of(LocalTime.now().getHour(),00));
+       assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER));
+   }
+   
+   /**
+    * Test case : User Unable to book the conference room due to the invalid Intervals (10-10:10hr) 
+    */
+   @Test
+   public void bookRoom_Invalid_15m_Intervals_ThrowsException() {
+   	BookingDetails newBooking = createValidBooking();
+   	newBooking.setStartTime(LocalTime.of(10,00));
+   	newBooking.setEndTime(LocalTime.of(10,10));
+   	
+   assertThrows(RoomBookingException.class, () -> bookingService.bookConferenceRoom(newBooking,LOGGED_IN_USER));
+   }
+
 
 
     private BookingData createBookingData() {
     	BookingData bookingData = new BookingData();
     	bookingData.setId(1l);
     	bookingData.setParticipants(3);
-    	bookingData.setStartTime(LocalTime.of(LocalTime.now().getHour()+1,00));
-    	bookingData.setEndTime(LocalTime.of(LocalTime.now().getHour()+2,00));
+    	bookingData.setStartTime(LocalTime.of(11,00));
+    	bookingData.setEndTime(LocalTime.of(12,00));
         return bookingData;
     }
     
     private BookingDetails createValidBooking() {
     	BookingDetails bookingData = new BookingDetails();
     	bookingData.setParticipants(3);
-    	bookingData.setStartTime(LocalTime.of(LocalTime.now().getHour()+1,00));
-    	bookingData.setEndTime(LocalTime.of(LocalTime.now().getHour()+2,00));
+    	bookingData.setStartTime(LocalTime.of(11,00));
+    	bookingData.setEndTime(LocalTime.of(12,00));
         return bookingData;
     }
     
-    private ConferenceRoomData createValidRoom() {
+    private ConferenceRoomData createValidConferenceRoom() {
         ConferenceRoomData room = new ConferenceRoomData();
         room.setConferenceRoomId(1L);
         room.setMaxCapacity(10);
         return room;
     }
     
-    private List<MaintenancePeriodConfig> getMaintenancePeriods() {
-    	List<MaintenancePeriodConfig> maintenancePeriods = new ArrayList<>();
-    	MaintenancePeriodConfig maintenancePeriod = new MaintenancePeriodConfig();
-    	maintenancePeriod.setStartTime(LocalTime.of(10,00));
-    	maintenancePeriod.setEndTime(LocalTime.of(11,00));
-    	maintenancePeriods.add(maintenancePeriod);
-		return maintenancePeriods;
-	}
 }

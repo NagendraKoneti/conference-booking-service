@@ -28,7 +28,14 @@ public class DataMapper {
 		return allRooms.stream().map(room -> new ConferenceDetails(room.getConferenceRoomId(), room.getName(), room.getMaxCapacity()))
 				.collect(Collectors.toList());
 	}
-	
+	/**
+	 * This method will provide the mapping of BookingDetails to BookingData Entity
+	 * 
+	 * @param bookingDetails : User provided booking details to book conference room
+	 * @param loggedInUser : Logged-in user 
+	 * @param availableRoom : Available conference room to block for requested user
+	 * @return
+	 */
 	public BookingData mapToBookingDataEntity(BookingDetails bookingDetails, String loggedInUser, ConferenceRoomData availableRoom) {
 		  BookingData bookingData = new BookingData();
 		  bookingData.setStartTime(bookingDetails.getStartTime());

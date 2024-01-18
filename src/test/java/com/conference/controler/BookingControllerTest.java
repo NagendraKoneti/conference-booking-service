@@ -79,6 +79,25 @@ public class BookingControllerTest {
     }
     
     /**
+	 * Test case    : Book conference room with 1 participants  
+	 * Excepted Results : Return 400 Bad Request with error message as Number of participants must be greater than 1.
+	 * 
+	 * @throws Exception
+	 */
+    @Test
+    void bookConferenceRoom_NoBooking_When_Participants_1_ThrowsException() throws Exception {
+    	when(bookingService.bookConferenceRoom(any(),anyString())).thenThrow(new RoomBookingException(ErrorCodes.LESS_PARTICIPANTS.name(),ErrorCodes.LESS_PARTICIPANTS.getErrorMessage()));
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/bookings/bookConferenceRoom")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"startTime\": \"14:00:00\"	, \"endTime\": \"15:00:00\", \"participants\": 5 }")
+                .header("loggedInUser", "nagendra"))
+		        .andExpect(status().isOk())
+		        .andExpect(jsonPath("$.status").value("error"))
+		        .andExpect(jsonPath("$.data.errorCode").value(ErrorCodes.LESS_PARTICIPANTS.name()))
+		        .andExpect(jsonPath("$.data.errorDetails").value(ErrorCodes.LESS_PARTICIPANTS.getErrorMessage()));
+    }
+    
+    /**
 	 * Test case    : Book conference room when rooms under maintains period (9 am - 10 am)
 	 * Excepted Results : Return 400 Bad Request with error message as No room available or exceeding room capacity.
 	 * 
