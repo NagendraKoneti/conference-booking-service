@@ -5,14 +5,15 @@
         <file>logs/application.log</file>
         <append>true</append>
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+           <pattern>%d{HH:mm:ss.SSS} [%thread] [%property{springAppName},%X{traceId:-},%X{spanId:-}] %-5level %logger{36} - %msg%n</pattern>
+                    
         </encoder>
     </appender>
 
     <!-- Console Appender -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] [%property{springAppName},%X{traceId:-},%X{spanId:-}] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -22,7 +23,5 @@
         <appender-ref ref="FILE" />
     </root>
 
-    <!-- Set the log level for specific packages or classes -->
-    <logger name="com.example" level="debug" />
-
+<springProperty scope="context" name="springAppName" source="spring.application.name"/>
 </configuration>

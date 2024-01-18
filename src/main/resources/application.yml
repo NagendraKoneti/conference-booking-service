@@ -1,9 +1,9 @@
 server:
   port: 8080
-  servlet:
-    application-display-name: conference-booking-service
     
 spring:
+  application: 
+    name: conference-booking-service
   cloud:
     compatibility-verifier:
       enabled: false
@@ -27,30 +27,15 @@ spring:
   jpa:
     hibernate:
         ddl-auto: create
-    database-platform:
-        org.hibernate.dialect.H2Dialect
-logging:
-  level:
-    root: ${LOG_LEVEL_ROOT:INFO}
-    org:
-      springframework:
-        web: INFO
-        cloud:
-          sleuth: DEBUG
-  pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+    database-platform: org.hibernate.dialect.H2Dialect
     
 management:
   endpoints:
     web:
       base-path: /api/actuator
-    exposure:
-      include: "health" #configprops,logfile,metrics,loggers,caches,httptrace,prometheus
-  tracing:
-   sampling:
-     probability: 1.0
-   propagation:
-     type: b3
+      exposure:
+        include: "health" #configprops,logfile,metrics,loggers,caches,httptrace,prometheus
+
      
 app:
   maintenance-periods:
